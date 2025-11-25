@@ -3,58 +3,45 @@ import { pool } from "../db.js";
 
 const router = express.Router();
 
-// GET /api/eventos?sete_digitos_cpf=1234567
-router.get("/eventos", async (req, res) => {
+// LOGIN DO MOTORISTA - AGORA COM 8 DÍGITOS
+router.post("/login", async (req, res) => {
+  const { digitos } = req.body;  // MUDOU: cpf7 → digitos
+
   try {
-    const { sete_digitos_cpf } = req.query;
+    const result = await pool.query(
+      `SELECT DISTINCT chave_fun, matricula, nome, digitos, periodo, media_pontos, desempenho, ranking
+       FROM vw_operador_movimento
+       WHERE digitos = $1`,
+      [digitos]
+    );
 
-    // Validação do parâmetro obrigatório
-    if (!sete_digitos_cpf) {
-      return res.status(400).json({
-        error: 'Parâmetro "sete_digitos_cpf" é obrigatório'
-      });
-    }
+    if (result.rows.length === 0)
+      return res.status(404).json({ erro: "Motorista não encontrado" });
 
-    // Validação: deve ter exatamente 7 dígitos numéricos
-    if (sete_digitos_cpf.length !== 7 || isNaN(sete_digitos_cpf)) {
-      return res.status(400).json({
-        error: 'sete_digitos_cpf deve conter exatamente 7 dígitos numéricos'
-      });
-    }
+    res.json(result.rows[0]);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ erro: "Erro na API" });
+  }
+});
 
-    const query = `
-      SELECT 
-        chave_fun,
-        TO_CHAR(periodo, 'YYYY-MM-DD') as periodo,
-        dsc_evento,
-        total,
-        ponto_evento,
-        total_pontos_evento,
-        sete_digitos_cpf
-      FROM vw_eventos
-      WHERE sete_digitos_cpf = $1
-      ORDER BY periodo DESC
-    `;
+// MOVIMENTOS - AGORA COM 8 DÍGITOS
+router.get("/movimentos/:digitos", async (req, res) => {
+  const { digitos } = req.params;  // MUDOU: cpf7 → digitos
 
-    const result = await pool.query(query, [sete_digitos_cpf]);
+  try {
+    const result = await pool.query(
+      `SELECT *
+       FROM vw_operador_movimento
+       WHERE digitos = $1
+       ORDER BY data_movimento DESC`,
+      [digitos]
+    );
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ 
-        message: 'Nenhum evento encontrado para este CPF' 
-      });
-    }
-
-    res.json({
-      success: true,
-      data: result.rows,
-      total: result.rows.length
-    });
-  } catch (error) {
-    console.error('Erro na consulta de eventos:', error);
-    res.status(500).json({ 
-      success: false,
-      error: 'Erro interno do servidor' 
-    });
+    res.json(result.rows);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ erro: "Erro na API" });
   }
 });
 
