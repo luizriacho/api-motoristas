@@ -3,16 +3,16 @@ import { pool } from "../db.js";
 
 const router = express.Router();
 
-// LOGIN DO MOTORISTA
+// LOGIN DO MOTORISTA - AGORA COM 8 DÍGITOS
 router.post("/login", async (req, res) => {
-  const { cpf7 } = req.body;
+  const { digitos } = req.body;  // MUDOU: cpf7 → digitos
 
   try {
     const result = await pool.query(
-      `SELECT DISTINCT chave_fun, matricula, nome, sete_digitos_cpf, periodo, media_pontos, desempenho, ranking
+      `SELECT DISTINCT chave_fun, matricula, nome, digitos, periodo, media_pontos, desempenho, ranking  // MUDOU: sete_digitos_cpf → digitos
        FROM vw_operador_movimento
-       WHERE sete_digitos_cpf = $1`,
-      [cpf7]
+       WHERE digitos = $1`,  // MUDOU: sete_digitos_cpf → digitos
+      [digitos]
     );
 
     if (result.rows.length === 0)
@@ -25,17 +25,17 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// MOVIMENTOS
-router.get("/movimentos/:cpf7", async (req, res) => {
-  const { cpf7 } = req.params;
+// MOVIMENTOS - AGORA COM 8 DÍGITOS
+router.get("/movimentos/:digitos", async (req, res) => {
+  const { digitos } = req.params;  // MUDOU: cpf7 → digitos
 
   try {
     const result = await pool.query(
       `SELECT *
        FROM vw_operador_movimento
-       WHERE sete_digitos_cpf = $1
+       WHERE digitos = $1  // MUDOU: sete_digitos_cpf → digitos
        ORDER BY data_movimento DESC`,
-      [cpf7]
+      [digitos]
     );
 
     res.json(result.rows);
