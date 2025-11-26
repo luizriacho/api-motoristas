@@ -56,11 +56,11 @@ router.get("/eventos", async (req, res) => {
       });
     }
 
-    if (digitos.length !== 7 || isNaN(digitos)) {
-      return res.status(400).json({
-        error: 'digitos deve conter exatamente 7 números'
-      });
-    }
+if (digitos.length !== 8 || isNaN(digitos)) {
+  return res.status(400).json({
+    error: 'digitos deve conter exatamente 8 números'
+  });
+}
 
     const query = `
       SELECT 
