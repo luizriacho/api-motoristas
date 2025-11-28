@@ -30,9 +30,10 @@ router.get("/eventos", async (req, res) => {
         total,
         ponto_evento,
         total_pontos_evento,
-        digitos  -- CAMPO ATUALIZADO
+        digitos,
+        empresa
       FROM vw_eventos
-      WHERE digitos = $1  -- CAMPO ATUALIZADO
+      WHERE digitos = $1 
       ORDER BY periodo DESC
     `;
 
