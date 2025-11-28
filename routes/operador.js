@@ -3,15 +3,17 @@ import { pool } from "../db.js";
 
 const router = express.Router();
 
-// LOGIN DO MOTORISTA 
+// LOGIN DO MOTORISTA (8 dígitos)
 router.post("/login", async (req, res) => {
-  const { digitos } = req.body;  
+  const { digitos } = req.body;
 
   try {
     const result = await pool.query(
-      `SELECT DISTINCT chave_fun, matricula, nome, digitos, periodo, media_pontos, desempenho, ranking , empresa
+      `SELECT DISTINCT 
+          chave_fun, matricula, nome, digitos, periodo, 
+          media_pontos, desempenho, ranking, empresa
        FROM vw_operador_movimento
-       WHERE digitos = $1`,  
+       WHERE digitos = $1`,
       [digitos]
     );
 
@@ -25,15 +27,15 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// MOVIMENTOS 
+// MOVIMENTOS (8 dígitos)
 router.get("/movimentos/:digitos", async (req, res) => {
-  const { digitos } = req.params;  
+  const { digitos } = req.params;
 
   try {
     const result = await pool.query(
       `SELECT *
        FROM vw_operador_movimento
-       WHERE digitos = $1  
+       WHERE digitos = $1
        ORDER BY data_movimento DESC`,
       [digitos]
     );

@@ -3,12 +3,58 @@ import { pool } from "../db.js";
 
 const router = express.Router();
 
+
 // GET /api/eventos?digitos=12345678  (AGORA COM 8 DÍGITOS)
+// LOGIN DO MOTORISTA - COM DIGITOS
+router.post("/login", async (req, res) => {
+  const { digitos } = req.body;
+
+  try {
+    const result = await pool.query(
+      `SELECT DISTINCT chave_fun, matricula, nome, digitos, periodo, media_pontos, desempenho, ranking
+       FROM vw_operador_movimento
+       WHERE digitos = $1`,
+      [digitos]
+    );
+
+    if (result.rows.length === 0)
+      return res.status(404).json({ erro: "Motorista não encontrado" });
+
+    res.json(result.rows[0]);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ erro: "Erro na API" });
+  }
+});
+
+// MOVIMENTOS
+router.get("/movimentos/:digitos", async (req, res) => {
+  const { digitos } = req.params;
+
+  try {
+    const result = await pool.query(
+      `SELECT *
+       FROM vw_operador_movimento
+       WHERE digitos = $1
+       ORDER BY data_movimento DESC`,
+      [digitos]
+    );
+
+    res.json(result.rows);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ erro: "Erro na API" });
+  }
+});
+
+// EVENTOS - COM DIGITOS
+
 router.get("/eventos", async (req, res) => {
   try {
     const { digitos } = req.query;
 
     // Validação do parâmetro obrigatório
+
     if (!digitos) {
       return res.status(400).json({
         error: 'Parâmetro "digitos" é obrigatório'
@@ -22,6 +68,12 @@ router.get("/eventos", async (req, res) => {
       });
     }
 
+if (digitos.length !== 8 || isNaN(digitos)) {
+  return res.status(400).json({
+    error: 'digitos deve conter exatamente 8 números'
+  });
+}
+
     const query = `
       SELECT 
         chave_fun,
@@ -34,6 +86,9 @@ router.get("/eventos", async (req, res) => {
         empresa
       FROM vw_eventos
       WHERE digitos = $1 
+        digitos
+      FROM vw_eventos
+      WHERE digitos = $1
       ORDER BY periodo DESC
     `;
 
@@ -60,3 +115,4 @@ router.get("/eventos", async (req, res) => {
 });
 
 export default router;
+
