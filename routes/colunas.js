@@ -6,7 +6,7 @@ const router = express.Router();
 /**
  * POST - inserir ou atualizar config_colunas
  */
-router.post("/config-colunas", async (req, res) => {
+router.post("/colunas", async (req, res) => {
   const { empresa, tela, coluna, visivel, largura, ordem } = req.body;
 
   try {
@@ -35,7 +35,7 @@ router.post("/config-colunas", async (req, res) => {
 /**
  * GET - buscar todas colunas de uma tela
  */
-router.get("/config-colunas/:empresa/:tela", async (req, res) => {
+router.get("/colunas/:empresa/:tela", async (req, res) => {
   const { empresa, tela } = req.params;
 
   try {
@@ -57,7 +57,7 @@ router.get("/config-colunas/:empresa/:tela", async (req, res) => {
 /**
  * GET - buscar 1 coluna específica
  */
-router.get("/config-colunas/:empresa/:tela/:coluna", async (req, res) => {
+router.get("/colunas/:empresa/:tela/:coluna", async (req, res) => {
   const { empresa, tela, coluna } = req.params;
 
   try {
