@@ -86,9 +86,6 @@ if (digitos.length !== 8 || isNaN(digitos)) {
         empresa
       FROM vw_eventos
       WHERE digitos = $1 
-        digitos
-      FROM vw_eventos
-      WHERE digitos = $1
       ORDER BY periodo DESC
     `;
 
