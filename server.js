@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import express from "express";
 import eventosRoutes from "./routes/eventos.js"; // Nova rota
 import operadorRoutes from "./routes/operador.js";
-import ColunasRoutes from "./routes/config-colunas.js";
+import ColunasRoutes from "./routes/colunas.js";
 
 
 dotenv.config();
