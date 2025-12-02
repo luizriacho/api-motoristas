@@ -5,6 +5,7 @@ import eventosRoutes from "./routes/eventos.js"; // Nova rota
 import operadorRoutes from "./routes/operador.js";
 import ColunasRoutes from "./routes/colunas.js";
 import empresasRoutes from "./routes/empresas.js";
+import adminRouter from './routes/admin.js';
 
 
 dotenv.config();
@@ -18,6 +19,7 @@ app.use("/api", operadorRoutes);
 app.use("/api", eventosRoutes); // Nova rota adicionada
 app.use("/api", ColunasRoutes);
 app.use("/api", empresasRoutes);
+app.use('/api', adminRouter);
 
 // Teste
 app.get("/", (req, res) => {
