@@ -227,9 +227,10 @@ router.get("/admin/eventos/:digitosAdmin", async (req, res) => {
   }
 });
 
-// LISTAR OPERADORES DISPONÍVEIS PARA O ADMINISTRADOR
+// LISTAR OPERADORES DISPONÍVEIS PARA O ADMINISTRADOR (COM FILTRO OPCIONAL POR GARAGEM)
 router.get("/admin/operadores/:digitosAdmin", async (req, res) => {
   const { digitosAdmin } = req.params;
+  const { garagem } = req.query; // Novo parâmetro opcional
 
   try {
     // Validar parâmetro
@@ -240,29 +241,58 @@ router.get("/admin/operadores/:digitosAdmin", async (req, res) => {
       });
     }
 
-    console.log(`🔍 Listando operadores para admin: ${digitosAdmin}`);
+    console.log(`🔍 Listando operadores para admin: ${digitosAdmin}, garagem: ${garagem || 'Todas'}`);
     
-    const query = `
-      SELECT DISTINCT 
-        chave_fun,
-        matricula,
-        nome,
-        digitos,
-        media_pontos,
-        desempenho,
-        ranking,
-        empresa
-      FROM vw_movimentos_admin
-      WHERE administrador = $1
-      ORDER BY nome
-    `;
+    let query;
+    let params;
 
-    const result = await pool.query(query, [digitosAdmin]);
+    if (garagem) {
+      // Se garagem for fornecida, filtrar por garagem
+      query = `
+        SELECT DISTINCT 
+          chave_fun,
+          matricula,
+          nome,
+          digitos,
+          media_pontos,
+          desempenho,
+          ranking,
+          empresa,
+          garagem
+        FROM vw_movimentos_admin
+        WHERE administrador = $1
+          AND garagem = $2
+        ORDER BY nome
+      `;
+      params = [digitosAdmin, garagem];
+    } else {
+      // Caso contrário, retornar todos os operadores da empresa
+      query = `
+        SELECT DISTINCT 
+          chave_fun,
+          matricula,
+          nome,
+          digitos,
+          media_pontos,
+          desempenho,
+          ranking,
+          empresa,
+          garagem
+        FROM vw_movimentos_admin
+        WHERE administrador = $1
+        ORDER BY nome
+      `;
+      params = [digitosAdmin];
+    }
+
+    const result = await pool.query(query, params);
 
     if (result.rows.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'Nenhum operador encontrado'
+        message: garagem ? 
+          `Nenhum operador encontrado na garagem ${garagem}` :
+          'Nenhum operador encontrado'
       });
     }
 
@@ -276,6 +306,58 @@ router.get("/admin/operadores/:digitosAdmin", async (req, res) => {
 
   } catch (error) {
     console.error('❌ Erro ao listar operadores:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro interno do servidor'
+    });
+  }
+});
+
+// LISTAR GARAGENS DISPONÍVEIS PARA O ADMINISTRADOR
+router.get("/admin/garagens/:digitosAdmin", async (req, res) => {
+  const { digitosAdmin } = req.params;
+
+  try {
+    // Validar parâmetro
+    if (!digitosAdmin || digitosAdmin.length !== 8) {
+      return res.status(400).json({
+        success: false,
+        error: 'Parâmetro "digitosAdmin" deve conter exatamente 8 caracteres'
+      });
+    }
+
+    console.log(`🔍 Listando garagens para admin: ${digitosAdmin}`);
+    
+    const query = `
+      SELECT DISTINCT garagem
+      FROM vw_movimentos_admin
+      WHERE administrador = $1
+        AND garagem IS NOT NULL
+        AND garagem <> ''
+      ORDER BY garagem
+    `;
+
+    const result = await pool.query(query, [digitosAdmin]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Nenhuma garagem encontrada'
+      });
+    }
+
+    const garagens = result.rows.map(row => row.garagem);
+    
+    console.log(`✅ Garagens encontradas: ${garagens.length}`);
+    
+    res.json({
+      success: true,
+      data: garagens,
+      total: garagens.length
+    });
+
+  } catch (error) {
+    console.error('❌ Erro ao listar garagens:', error);
     res.status(500).json({
       success: false,
       error: 'Erro interno do servidor'
