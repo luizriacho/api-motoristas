@@ -1,11 +1,11 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
-import eventosRoutes from "./routes/eventos.js"; // Nova rota
-import operadorRoutes from "./routes/operador.js";
+import adminRouter from './routes/admin.js';
 import ColunasRoutes from "./routes/colunas.js";
 import empresasRoutes from "./routes/empresas.js";
-import adminRouter from './routes/admin.js';
+import eventosRoutes from "./routes/eventos.js"; // Nova rota
+import operadorRoutes from "./routes/operador.js";
 
 
 dotenv.config();
@@ -20,6 +20,7 @@ app.use("/api", eventosRoutes); // Nova rota adicionada
 app.use("/api", ColunasRoutes);
 app.use("/api", empresasRoutes);
 app.use('/api', adminRouter);
+app.use('/api', rankingRouter);
 
 // Teste
 app.get("/", (req, res) => {
