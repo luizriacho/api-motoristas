@@ -18,3 +18,4 @@ router.get("/mestre/:empresa/:periodo", async (req, res) => {
     res.status(500).json({ erro: "Erro na API" });
   }
 });
+export default router;
