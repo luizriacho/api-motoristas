@@ -6,7 +6,7 @@ import ColunasRoutes from "./routes/colunas.js";
 import empresasRoutes from "./routes/empresas.js";
 import eventosRoutes from "./routes/eventos.js"; // Nova rota
 import operadorRoutes from "./routes/operador.js";
-
+import rankingRouter from "./routes/ranking.js";
 
 dotenv.config();
 
