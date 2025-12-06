@@ -1,3 +1,8 @@
+import express from "express";
+import { pool } from "../db.js";
+
+const router = express.Router();
+
 // MESTRE - por empresa e período
 router.get("/mestre/:empresa/:periodo", async (req, res) => {
   const { empresa, periodo } = req.params;
@@ -18,4 +23,5 @@ router.get("/mestre/:empresa/:periodo", async (req, res) => {
     res.status(500).json({ erro: "Erro na API" });
   }
 });
+
 export default router;
