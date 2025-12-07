@@ -7,6 +7,7 @@ import empresasRoutes from "./routes/empresas.js";
 import eventosRoutes from "./routes/eventos.js"; // Nova rota
 import operadorRoutes from "./routes/operador.js";
 import rankingRouter from "./routes/ranking.js";
+import economiaRouter from "./routes/economia.js";
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.use("/api", ColunasRoutes);
 app.use("/api", empresasRoutes);
 app.use('/api', adminRouter);
 app.use('/api', rankingRouter);
+app.use('/api',economiaRouter);
 
 // Teste
 app.get("/", (req, res) => {
