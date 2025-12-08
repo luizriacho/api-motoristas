@@ -1,4 +1,11 @@
-// routes/economia.js - Funções genéricas
+// routes/economia.js
+import express from "express";
+import { pool } from "../db.js";
+
+const router = express.Router();  // ← ESTAVA FALTANDO ESTA LINHA!
+
+// GET: Buscar dados de economia por empresa
+router.get("/empresa/:empresa", async (req, res) => {
 
 // Função auxiliar para determinar o tipo de unidade
 const determinarTipoUnidade = (unidade) => {
@@ -238,6 +245,6 @@ router.get("/unidades-por-tipo/:empresa", async (req, res) => {
       erro: "Erro ao buscar unidades por tipo" 
     });
   }
-});
+}});
 
 export default router;
