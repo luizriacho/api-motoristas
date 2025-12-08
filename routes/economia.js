@@ -2,10 +2,7 @@
 import express from "express";
 import { pool } from "../db.js";
 
-const router = express.Router();  // ← ESTAVA FALTANDO ESTA LINHA!
-
-// GET: Buscar dados de economia por empresa
-router.get("/empresa/:empresa", async (req, res) => {
+const router = express.Router();  
 
 // Função auxiliar para determinar o tipo de unidade
 const determinarTipoUnidade = (unidade) => {
@@ -13,6 +10,22 @@ const determinarTipoUnidade = (unidade) => {
   if (unidade === 'MATRIZ') return 'Unidade Principal';
   return 'Unidade Operacional';
 };
+
+// GET: Buscar dados de economia por empresa (rota original, se necessário)
+router.get("/empresa/:empresa", async (req, res) => {
+  const { empresa } = req.params;
+  try {
+    // Exemplo de consulta - ajuste conforme necessário
+    const result = await pool.query(
+      `SELECT * FROM economia_combustivel WHERE empresa = $1`,
+      [empresa]
+    );
+    res.json(result.rows);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ erro: "Erro na API" });
+  }
+});
 
 // GET: Buscar análise adaptativa para qualquer empresa
 router.get("/analise-adaptativa/:empresa", async (req, res) => {
@@ -245,6 +258,6 @@ router.get("/unidades-por-tipo/:empresa", async (req, res) => {
       erro: "Erro ao buscar unidades por tipo" 
     });
   }
-}});
+});
 
 export default router;
