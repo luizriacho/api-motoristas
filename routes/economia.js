@@ -3,7 +3,7 @@ import { pool } from "../db.js";
 
 const router = express.Router();  
 
-// Voltamos para a rota antiga que você confirmou que funcionava
+// Rota padrão que o seu servidor já conhece
 router.get("/empresa/:empresa", async (req, res) => {
     const { empresa } = req.params
     , { periodo } = req.query;
@@ -36,12 +36,12 @@ router.get("/empresa/:empresa", async (req, res) => {
         const result = await pool.query(query, params);
         const rows = result.rows;
 
-        // Filtros para evitar duplicidade no dashboard
+        // SEPARAÇÃO DE DADOS PARA O DASHBOARD
         const dadosGerais = rows.filter(r => r.unidade === 'GERAL')
         , dadosParaRanking = rows.filter(r => r.unidade !== 'GERAL')
         , periodosDisponiveis = [...new Set(rows.map(r => r.periodo_id))];
 
-        // Cálculo do Resumo corrigindo para KM/L
+        // CÁLCULO DO RESUMO (KM/L CORRETO)
         const resumoFinal = {
             total_valor_economia: 0
             , total_km: 0
@@ -57,12 +57,11 @@ router.get("/empresa/:empresa", async (req, res) => {
             resumoFinal.total_valor_economia = dadosGerais.reduce((sum, r) => sum + Number(r.valor_economia), 0);
             resumoFinal.total_km = kmTotal;
             resumoFinal.total_litros = qtdeTotal;
-            // CORREÇÃO: KM dividido por Litros
+            // KM dividido por Litros
             resumoFinal.media_km_l = qtdeTotal > 0 ? (kmTotal / qtdeTotal) : 0;
             resumoFinal.percentual_medio = dadosGerais.reduce((sum, r) => sum + Number(r.percentual), 0) / dadosGerais.length;
         }
 
-        // Enviamos tudo num único objeto para o Hook ler
         res.json({
             success: true
             , data: rows
@@ -72,7 +71,7 @@ router.get("/empresa/:empresa", async (req, res) => {
         });
     } catch (e) {
         console.error(e);
-        res.status(500).json({ success: false, erro: "Erro no servidor" });
+        res.status(500).json({ success: false, erro: "Erro ao consultar banco" });
     }
 });
 
