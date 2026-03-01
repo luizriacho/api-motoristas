@@ -3,7 +3,6 @@ import { pool } from "../db.js";
 
 const router = express.Router();  
 
-// ROTA NOVA: analise-adaptativa
 router.get("/analise-adaptativa/:empresa", async (req, res) => {
     const { empresa } = req.params
     , { periodo } = req.query;
@@ -38,13 +37,13 @@ router.get("/analise-adaptativa/:empresa", async (req, res) => {
         const result = await pool.query(query, params);
         const rows = result.rows;
 
-        // 1. ISOLAR O RESUMO (Apenas a unidade GERAL para evitar duplicar valores)
+        // 1. ISOLAR O RESUMO (Apenas unidade GERAL para não duplicar totais)
         const dadosGerais = rows.filter(r => r.unidade === 'GERAL');
         
-        // 2. ISOLAR RANKING (Excluir GERAL para o gráfico de barras)
+        // 2. ISOLAR RANKING (Excluir GERAL para o gráfico de comparação)
         const dadosParaRanking = rows.filter(r => r.unidade !== 'GERAL');
 
-        // 3. LISTA DE PERÍODOS (Para o modal de filtro)
+        // 3. LISTA DE PERÍODOS PARA O FILTRO
         const periodosDisponiveis = [...new Set(rows.map(r => r.periodo_id))];
 
         // 4. CÁLCULO DO RESUMO CONSOLIDADO
@@ -63,8 +62,7 @@ router.get("/analise-adaptativa/:empresa", async (req, res) => {
             resumoFinal.total_valor_economia = dadosGerais.reduce((sum, r) => sum + Number(r.valor_economia), 0);
             resumoFinal.total_km = kmTotal;
             resumoFinal.total_litros = qtdeTotal;
-            
-            // CORREÇÃO: KM dividido por LITROS para ter km/L
+            // CORREÇÃO: KM dividido por LITROS
             resumoFinal.media_km_l = qtdeTotal > 0 ? (kmTotal / qtdeTotal) : 0;
             resumoFinal.percentual_medio = dadosGerais.reduce((sum, r) => sum + Number(r.percentual), 0) / dadosGerais.length;
         }
@@ -78,7 +76,7 @@ router.get("/analise-adaptativa/:empresa", async (req, res) => {
         });
     } catch (e) {
         console.error(e);
-        res.status(500).json({ success: false, erro: "Erro ao processar economia no servidor" });
+        res.status(500).json({ success: false, erro: "Erro ao processar economia" });
     }
 });
 
