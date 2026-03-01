@@ -1,10 +1,9 @@
-import express from "express";
-import { pool } from "../db.js";
+const express = require('express');
+const router = express.Router();
+const { pool } = require('../db');
 
-const router = express.Router();  
-
-// Rota padrão que o seu servidor já conhece
-router.get("/empresa/:empresa", async (req, res) => {
+// Rota original que você confirmou que funciona
+router.get('/empresa/:empresa', async (req, res) => {
     const { empresa } = req.params
     , { periodo } = req.query;
 
@@ -26,6 +25,7 @@ router.get("/empresa/:empresa", async (req, res) => {
         `;
         
         const params = [empresa.toUpperCase()];
+        
         if (periodo && periodo !== 'TODOS') {
             query += ` AND TO_CHAR(periodo, 'YYYY-MM') = $2`;
             params.push(periodo);
@@ -36,12 +36,12 @@ router.get("/empresa/:empresa", async (req, res) => {
         const result = await pool.query(query, params);
         const rows = result.rows;
 
-        // SEPARAÇÃO DE DADOS PARA O DASHBOARD
+        // Separando para o Dashboard não somar errado
         const dadosGerais = rows.filter(r => r.unidade === 'GERAL')
         , dadosParaRanking = rows.filter(r => r.unidade !== 'GERAL')
         , periodosDisponiveis = [...new Set(rows.map(r => r.periodo_id))];
 
-        // CÁLCULO DO RESUMO (KM/L CORRETO)
+        // Resumo com cálculo de média KM/L (KM dividido por Litros)
         const resumoFinal = {
             total_valor_economia: 0
             , total_km: 0
@@ -57,11 +57,11 @@ router.get("/empresa/:empresa", async (req, res) => {
             resumoFinal.total_valor_economia = dadosGerais.reduce((sum, r) => sum + Number(r.valor_economia), 0);
             resumoFinal.total_km = kmTotal;
             resumoFinal.total_litros = qtdeTotal;
-            // KM dividido por Litros
             resumoFinal.media_km_l = qtdeTotal > 0 ? (kmTotal / qtdeTotal) : 0;
             resumoFinal.percentual_medio = dadosGerais.reduce((sum, r) => sum + Number(r.percentual), 0) / dadosGerais.length;
         }
 
+        // Retornamos exatamente o que o seu App precisa
         res.json({
             success: true
             , data: rows
@@ -71,8 +71,8 @@ router.get("/empresa/:empresa", async (req, res) => {
         });
     } catch (e) {
         console.error(e);
-        res.status(500).json({ success: false, erro: "Erro ao consultar banco" });
+        res.status(500).json({ success: false, error: e.message });
     }
 });
 
-export default router;
+module.exports = router;
