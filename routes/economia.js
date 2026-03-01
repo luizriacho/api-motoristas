@@ -3,7 +3,8 @@ import { pool } from "../db.js";
 
 const router = express.Router();  
 
-router.get("/analise-adaptativa/:empresa", async (req, res) => {
+// Voltamos para a rota antiga que você confirmou que funcionava
+router.get("/empresa/:empresa", async (req, res) => {
     const { empresa } = req.params
     , { periodo } = req.query;
 
@@ -13,13 +14,11 @@ router.get("/analise-adaptativa/:empresa", async (req, res) => {
                 unidade
                 , empresa
                 , periodo
-                , base
                 , km
                 , qtde
                 , media
                 , percentual
                 , valor_litro
-                , qtde_economia
                 , valor_economia
                 , TO_CHAR(periodo, 'YYYY-MM') as periodo_id
             FROM vw_economia_dashboard
@@ -37,16 +36,12 @@ router.get("/analise-adaptativa/:empresa", async (req, res) => {
         const result = await pool.query(query, params);
         const rows = result.rows;
 
-        // 1. ISOLAR O RESUMO (Apenas unidade GERAL para não duplicar totais)
-        const dadosGerais = rows.filter(r => r.unidade === 'GERAL');
-        
-        // 2. ISOLAR RANKING (Excluir GERAL para o gráfico de comparação)
-        const dadosParaRanking = rows.filter(r => r.unidade !== 'GERAL');
+        // Filtros para evitar duplicidade no dashboard
+        const dadosGerais = rows.filter(r => r.unidade === 'GERAL')
+        , dadosParaRanking = rows.filter(r => r.unidade !== 'GERAL')
+        , periodosDisponiveis = [...new Set(rows.map(r => r.periodo_id))];
 
-        // 3. LISTA DE PERÍODOS PARA O FILTRO
-        const periodosDisponiveis = [...new Set(rows.map(r => r.periodo_id))];
-
-        // 4. CÁLCULO DO RESUMO CONSOLIDADO
+        // Cálculo do Resumo corrigindo para KM/L
         const resumoFinal = {
             total_valor_economia: 0
             , total_km: 0
@@ -62,11 +57,12 @@ router.get("/analise-adaptativa/:empresa", async (req, res) => {
             resumoFinal.total_valor_economia = dadosGerais.reduce((sum, r) => sum + Number(r.valor_economia), 0);
             resumoFinal.total_km = kmTotal;
             resumoFinal.total_litros = qtdeTotal;
-            // CORREÇÃO: KM dividido por LITROS
+            // CORREÇÃO: KM dividido por Litros
             resumoFinal.media_km_l = qtdeTotal > 0 ? (kmTotal / qtdeTotal) : 0;
             resumoFinal.percentual_medio = dadosGerais.reduce((sum, r) => sum + Number(r.percentual), 0) / dadosGerais.length;
         }
 
+        // Enviamos tudo num único objeto para o Hook ler
         res.json({
             success: true
             , data: rows
@@ -76,7 +72,7 @@ router.get("/analise-adaptativa/:empresa", async (req, res) => {
         });
     } catch (e) {
         console.error(e);
-        res.status(500).json({ success: false, erro: "Erro ao processar economia" });
+        res.status(500).json({ success: false, erro: "Erro no servidor" });
     }
 });
 
