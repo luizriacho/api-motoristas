@@ -11,7 +11,8 @@ router.post("/login", async (req, res) => {
     const result = await pool.query(
       `SELECT DISTINCT 
           chave_fun, matricula, nome, digitos, periodo, 
-          media_pontos, desempenho, ranking, empresa, numero_linha
+          media_pontos, desempenho, ranking, empresa, numero_linha,
+          total_ocorrencia, total_reclamacao, total_elogio, saldo_ro, dias_trabalhados
        FROM vw_operador_movimento
        WHERE digitos = $1`,
       [digitos]
@@ -48,3 +49,4 @@ router.get("/movimentos/:digitos", async (req, res) => {
 });
 
 export default router;
+
